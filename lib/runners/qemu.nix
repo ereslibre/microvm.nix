@@ -1,4 +1,5 @@
 { pkgs
+, hostPkgs
 , microvmConfig
 , macvtapFds
 }:
@@ -90,10 +91,11 @@ in {
     [
       "${qemu}/bin/qemu-system-${arch}"
       "-name" hostName
-      "-M" machine
+      "-M" "virt"
       "-m" (toString (mem + balloonMem))
       "-smp" (toString vcpu)
-      "-enable-kvm"
+      # "-enable-kvm"
+      "-cpu" "cortex-a57"
       "-nodefaults" "-no-user-config"
       # qemu just hangs after shutdown, allow to exit by rebooting
       "-no-reboot"
@@ -105,13 +107,13 @@ in {
       "-serial" "chardev:stdio"
       "-device" "virtio-rng-${devType}"
     ] ++
-    lib.optionals (system == "x86_64-linux") [
+    lib.optionals (system == hostPkgs.system) [
       "-cpu" "host,+x2apic"
       "-device" "i8042"
 
       "-append" "earlyprintk=ttyS0 console=ttyS0 reboot=t panic=-1 ${toString microvmConfig.kernelParams}"
     ] ++
-    lib.optionals (system == "aarch64-linux") [
+    lib.optionals (system == hostPkgs.system) [
       "-cpu" "host"
 
       "-append" "console=ttyAMA0 reboot=t panic=-1 ${toString microvmConfig.kernelParams}"

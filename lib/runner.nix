@@ -1,4 +1,5 @@
 { pkgs
+, hostPkgs ? pkgs
 , microvmConfig
 , toplevel
 }:
@@ -10,7 +11,7 @@ let
   inherit (makeMacvtap microvmConfig) openMacvtapFds macvtapFds;
 
   hypervisorConfig = import (./runners + "/${microvmConfig.hypervisor}.nix") {
-    inherit pkgs microvmConfig macvtapFds;
+    inherit pkgs hostPkgs microvmConfig macvtapFds;
   };
 
   inherit (hypervisorConfig) command canShutdown shutdownCommand;

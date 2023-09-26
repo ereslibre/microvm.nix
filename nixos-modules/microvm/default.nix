@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ hostPkgs ? null }: { config, lib, pkgs, ... }:
 
 let
   microvm-lib = import ../../lib {
@@ -22,7 +22,7 @@ in
   config = {
     microvm.runner = lib.genAttrs microvm-lib.hypervisors (hypervisor:
       microvm-lib.buildRunner {
-        inherit pkgs;
+        inherit hostPkgs pkgs;
         microvmConfig = config.microvm // {
           inherit (config.networking) hostName;
           inherit hypervisor;

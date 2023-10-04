@@ -33,7 +33,7 @@ let
     ++ lib.optional microvmConfig.optimize.enable minimizeQemuClosureSize
   );
 
-  qemu = overrideQemu pkgs.qemu_kvm;
+  qemu = overrideQemu hostPkgs.qemu_kvm;
 
   inherit (microvmConfig) hostName vcpu mem balloonMem user interfaces shares socket forwardPorts devices graphics storeOnDisk kernel initrdPath storeDisk;
   inherit (microvmConfig.qemu) extraArgs;
@@ -78,7 +78,7 @@ let
               then "hostfwd=${proto}:${host.address}:${toString host.port}-" +
                    "${guest.address}:${toString guest.port},"
               else "guestfwd=${proto}:${guest.address}:${toString guest.port}-" +
-                   "cmd:${pkgs.netcat}/bin/nc ${host.address} ${toString host.port},"
+                   "cmd:${hostPkgs.netcat}/bin/nc ${host.address} ${toString host.port},"
           );
       in
       [ forwardingOptions ];
@@ -250,7 +250,7 @@ in {
            # wait for exit
           cat
         ) | \
-        ${pkgs.socat}/bin/socat STDIO UNIX:${socket},shut-none
+        ${hostPkgs.socat}/bin/socat STDIO UNIX:${socket},shut-none
     ''
     else throw "Cannot shutdown without socket";
 
@@ -262,9 +262,9 @@ in {
         ${writeQmp { execute = "qmp_capabilities"; }}
         ${writeQmp { execute = "balloon"; arguments.value = 987; }}
       ) | sed -e s/987/$VALUE/ | \
-        ${pkgs.socat}/bin/socat STDIO UNIX:${socket},shut-none | \
+        ${hostPkgs.socat}/bin/socat STDIO UNIX:${socket},shut-none | \
         tail -n 1 | \
-        ${pkgs.jq}/bin/jq -r .data.actual \
+        ${hostPkgs.jq}/bin/jq -r .data.actual \
       )
       echo $(( $SIZE / 1024 / 1024 ))
     ''

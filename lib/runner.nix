@@ -27,13 +27,13 @@ let
     exec ${command}
   '';
 
-  shutdownScriptBin = pkgs.writeScriptBin "microvm-shutdown" ''
+  shutdownScriptBin = hostPkgs.writeScriptBin "microvm-shutdown" ''
     #! ${pkgs.runtimeShell} -e
 
     ${shutdownCommand}
   '';
 
-  balloonScriptBin = pkgs.writeScriptBin "microvm-balloon" ''
+  balloonScriptBin = hostPkgs.writeScriptBin "microvm-balloon" ''
     #! ${pkgs.runtimeShell} -e
 
     if [ -z "$1" ]; then
@@ -46,7 +46,7 @@ let
   '';
 in
 
-pkgs.runCommand "microvm-${microvmConfig.hypervisor}-${microvmConfig.hostName}"
+hostPkgs.runCommand "microvm-${microvmConfig.hypervisor}-${microvmConfig.hostName}"
 {
   # for `nix run`
   meta.mainProgram = "microvm-run";

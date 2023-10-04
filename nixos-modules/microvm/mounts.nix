@@ -42,5 +42,5 @@ lib.mkIf config.microvm.guest.enable {
         neededForBoot = true;
       };
     }
-  ) ]
+  ) ];
 }

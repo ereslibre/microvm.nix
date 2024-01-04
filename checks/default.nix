@@ -9,6 +9,27 @@ let
         microvm.hypervisor = "qemu";
       } ];
     } {
+      id = "qemu-tcg";
+      modules = let
+        # Emulate a different guest system than the host one
+        guestSystem = if "${system}" == "x86_64-linux" then "aarch64-unknown-linux-gnu"
+          else "x86_64-linux";
+      in [
+        {
+          microvm = {
+            hypervisor = "qemu";
+            # Force the CPU to be something else than the current
+            # system, and thus, emulated with qemu's Tiny Code Generator
+            # (TCG)
+            cpu = if "${system}" == "x86_64-linux" then "cortex-a53"
+              else "Westmere";
+          };
+          # This hypervisor requires a crossSystem nixpkgs for the
+          # guest system
+          nixpkgs.crossSystem.config = guestSystem;
+        }
+      ];
+    } {
       id = "cloud-hypervisor";
       modules = [ {
         microvm.hypervisor = "cloud-hypervisor";
@@ -62,6 +83,7 @@ let
         microvm.writableStoreOverlay = "/nix/.rw-store";
         microvm.volumes = [ {
           image = "nix-store-overlay.img";
+          label = "nix-store";
           mountPoint = config.microvm.writableStoreOverlay;
           size = 128;
         } ];

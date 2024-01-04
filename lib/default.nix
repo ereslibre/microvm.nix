@@ -30,21 +30,24 @@ rec {
 
   createVolumesScript = pkgs: pkgs.lib.concatMapStringsSep "\n" (
     { image
+    , label
     , size ? throw "Specify a size for volume ${image} or use autoCreate = false"
     , fsType ? defaultFsType
     , autoCreate ? true
     , ...
-    }: nixpkgs-lib.optionalString autoCreate ''
-      PATH=$PATH:${with pkgs; lib.makeBinPath [ coreutils util-linux e2fsprogs ]}
+    }: pkgs.lib.warnIf
+      (label != null && !autoCreate) "Label will be ignored unless autoCreate is provided for the volume"
+      (nixpkgs-lib.optionalString autoCreate ''
+      PATH=$PATH:${with pkgs.buildPackages; lib.makeBinPath [ coreutils util-linux e2fsprogs ]}
 
       if [ ! -e '${image}' ]; then
         touch '${image}'
         # Mark NOCOW
         chattr +C '${image}' || true
         fallocate -l${toString size}MiB '${image}'
-        mkfs.${fsType} '${image}'
+        mkfs.${fsType} ${pkgs.lib.optionalString (label != null) "-L '${label}'"} '${image}'
       fi
-    '');
+    ''));
 
   buildRunner = import ./runner.nix;
 
